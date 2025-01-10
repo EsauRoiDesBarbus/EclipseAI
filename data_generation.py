@@ -1,5 +1,5 @@
 from eclipseCpp import battleBuilder, Weapons
-
+from random import randint, choices
 
 
 class ShipData:
@@ -100,12 +100,23 @@ def randomShip (type):
     if (type=="SBA"):
         return ShipData(1, "SBA", 4, 2, 1, 0, [1,0,0,0,0], [0,0,0,0,0])
 
-def randomBattle ():
-    return BattleData([randomShip("INT"), randomShip("CRU")], BonusData (False, False), [randomShip("DRE")], BonusData (False, False))
+def randomBattle (max_ships=2):
+    nb_attacker_ships = randint(1, min(3, max_ships-1))
+    nb_defender_ships = randint(1, min(4, max_ships-nb_attacker_ships))
+
+    attacker_ships = []
+    for type in choices(["INT", "CRU", "DRE"]       , k=nb_attacker_ships):
+        attacker_ships.append(randomShip(type))
+
+    defender_ships = []
+    for type in choices(["INT", "CRU", "DRE", "SBA"], k=nb_defender_ships):
+        defender_ships.append(randomShip(type))
+
+    #TODO randomize bonuses
+    return BattleData(attacker_ships, BonusData (False, False), defender_ships, BonusData (False, False))
 
 
-battle = randomBattle()
+battle = randomBattle(max_ships=5)
 
 print (battle.toVector())
-print (len(battle.toVector()))
 print (battle.signature())
