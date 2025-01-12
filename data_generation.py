@@ -128,7 +128,7 @@ class BattleData:
         # use injective hash function on toVector to detect and remove duplicates
         return hash(tuple(self.toVector()))
     
-    def solveBattle (self):
+    def solveBattle (self, timeout=60):
         # use the eclipseCpp library to solve the battle
         battle_builder = battleBuilder()
         for ship in self._attacker_ships:
@@ -144,10 +144,12 @@ class BattleData:
         #TODO add bonuses
 
         # solve battle
+        battle_builder.setTimeout(timeout)
         start_time = time ()
         output = battle_builder.solveBattle()
         self._calculation_time = time () - start_time
         self._attacker_win_chance = battle_builder.getAttackerWinChance()
+        self._timeout = battle_builder.getTimeoutStatus()
 
         return output
     
@@ -161,9 +163,12 @@ class BattleData:
         else:
             return True
     
-    def appendToCSV (self, file):
+    def appendToCSV (self, file, with_result=True):
         # the format is (int) signature, (int) toVector, (float) calculation time, (float) Battleresult
-        row = [self.signature()] + self.toVector() + [self._calculation_time] + [self._attacker_win_chance]
+        row = [self.signature()] + self.toVector() 
+        if (with_result):
+            row+= [self._calculation_time] + [self._attacker_win_chance]
+
         with open(file, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(row)

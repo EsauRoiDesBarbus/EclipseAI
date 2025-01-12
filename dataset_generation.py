@@ -7,8 +7,11 @@ if __name__ == "__main__":
     train_dataset = "datasets/training_dataset.csv"
     tests_dataset = "datasets/testing_dataset.csv"
     verif_dataset = "datasets/verification_dataset.csv"
+    tmout_dataset = "datasets/timeout_dataset.csv"
     error_dataset = "datasets/error_dataset.csv"
-    datasets = [train_dataset, tests_dataset, verif_dataset, error_dataset]
+    datasets = [train_dataset, tests_dataset, verif_dataset, tmout_dataset, error_dataset]
+
+    timeout = 5 # seconds
 
     # Check if the file exists
     for dataset in datasets:
@@ -27,10 +30,12 @@ if __name__ == "__main__":
     
     # generate data
     doublons = 0
+    timeouts = 0
+
     start_time = time ()
-    for i in range (1000):
+    for i in range (100):
         # generate battle 
-        battle_data = randomBattle(max_ships=2)
+        battle_data = randomBattle(max_ships=5)
 
 
         # check signatures for doublon
@@ -41,20 +46,31 @@ if __name__ == "__main__":
         else:
             signatures.append(signature)
             print (i, time ()-start_time)
-            # TODO: add timeout
-            battle_data.solveBattle()
 
-            # add to one of the datasets
-            if battle_data.errorCheck():
-                dataset = error_dataset
+            # solve battle 
+            battle_data.solveBattle(timeout)
+
+            if (battle_data._timeout):
+                # solveBattle timed out
+                timeouts+=1
+                dataset = tmout_dataset
+                battle_data.appendToCSV(dataset, with_result=False)
             else:
-                key = signature%10 # 50% training, 30% testing, 20% verification
-                if   key <5:
-                    dataset = train_dataset
-                elif key <8:
-                    dataset = tests_dataset
+                # solveBattle finished within time
+                # add to one of the datasets
+                if battle_data.errorCheck():
+                    dataset = error_dataset
                 else:
-                    dataset = verif_dataset
+                    key = signature%10 # 50% training, 30% testing, 20% verification
+                    if   key <5:
+                        dataset = train_dataset
+                    elif key <8:
+                        dataset = tests_dataset
+                    else:
+                        dataset = verif_dataset
 
-            battle_data.appendToCSV(dataset)
+                battle_data.appendToCSV(dataset)
+
+
     print ("Doublons: ", doublons)
+    print ("timeouts: ", timeouts)
