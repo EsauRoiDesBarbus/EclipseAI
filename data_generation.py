@@ -1,5 +1,7 @@
 from eclipseCpp import battleBuilder, Weapons
-from random import randint, choices
+from random import randint, choices, sample
+from time import time
+import csv
 
 
 class ShipData:
@@ -21,9 +23,43 @@ class ShipData:
         vec+= [self._canons[0]  ,self._canons[1]  ,self._canons[2]  ,self._canons[3]  ,self._canons[4]]
         vec+= [self._missiles[0],self._missiles[1],self._missiles[2],self._missiles[3],self._missiles[4]]
         return vec
+    
+    def toString (self):
+        response = str(self._number)+" "
+        if   (self._type=="INT"):
+            response+="interceptor"
+        elif (self._type=="CRU"):
+            response+="cruiser"
+        elif (self._type=="DRE"):
+            response+="dreadnought"
+        elif (self._type=="SBA"):
+            response+="starbase"
+        else:
+            response+="ship"
+        response+= (self._number>1)*"s" + " with "+str(self._initiative)+" initiative, "
+        if (self._hull>0):
+            response +=     str(self._hull)+" hull, "
+        if (self._computer>0):
+            response += '+'+str(self._computer)+" computer, "
+        if (self._shield>0):
+            response += '-'+str(self._shield)+" shield, "
+        colors = ["yellow", "orange", "blue", "red", "pink"]
+        for i in range (5):
+            if self._canons[i]>0:
+                response += str(self._canons[i])+' '+ colors[i] + " canon"    +(self._canons[i]>1)*"s" +", "
+        for i in range (5):
+            if self._missiles[i]>0:
+                response += str(self._missiles[i])+' '+ colors[i] + " missile"  +(self._missiles[i]>1)*"s" +", "
+        return (response[:-2]) #remove the last space and ,
 
 def emptyShip ():
     return ShipData(0, "INT", 0, 0, 0, 0, [0,0,0,0,0], [0,0,0,0,0])
+
+def vectorToShip (vec, type="SHIP"):
+    # converts a vector to a ship
+    ship = ShipData(vec[0], type, vec[1], vec[2], vec[3], vec[4], vec[6:11], vec[11:16])
+    ship._regen = vec[5]
+    return ship
 
 class BonusData:
     def __init__ (self, is_npc, antimatter_splitter):
@@ -79,20 +115,80 @@ class BattleData:
 
         return vec
     
+    def toString (self):
+        response = "Attacker:\n"
+        for ship in self._attacker_ships:
+            response += ship.toString() + "\n"
+        response+= "Defender:\n"
+        for ship in self._defender_ships:
+            response += ship.toString() + "\n"
+        return response
+    
     def signature (self):
         # use injective hash function on toVector to detect and remove duplicates
         return hash(tuple(self.toVector()))
+    
     def solveBattle (self):
         # use the eclipseCpp library to solve the battle
-        return 0
-    def toCSV (self):
-        # the format is signature, toVector, Battleresult
-        return 0
+        battle_builder = battleBuilder()
+        for ship in self._attacker_ships:
+            canons = Weapons(ship._canons[0], ship._canons[1], ship._canons[2], ship._canons[3], ship._canons[4])
+            missiles = Weapons(ship._missiles[0], ship._missiles[1], ship._missiles[2], ship._missiles[3], ship._missiles[4])
+            battle_builder.addShip("ATT", ship._number, ship._type, ship._initiative, ship._hull, ship._computer, ship._shield, canons, missiles)
+
+        for ship in self._defender_ships:
+            canons = Weapons(ship._canons[0], ship._canons[1], ship._canons[2], ship._canons[3], ship._canons[4])
+            missiles = Weapons(ship._missiles[0], ship._missiles[1], ship._missiles[2], ship._missiles[3], ship._missiles[4])
+            battle_builder.addShip("DEF", ship._number, ship._type, ship._initiative, ship._hull, ship._computer, ship._shield, canons, missiles)
+
+        #TODO add bonuses
+
+        # solve battle
+        start_time = time ()
+        output = battle_builder.solveBattle()
+        self._calculation_time = time () - start_time
+        self._attacker_win_chance = battle_builder.getAttackerWinChance()
+
+        return output
+    
+    def appendToCSV (self, file):
+        # the format is (int) signature, (int) toVector, (float) calculation time, (float) Battleresult
+        row = [self.signature()] + self.toVector() + [self._calculation_time] + [self._attacker_win_chance]
+        with open(file, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(row)
 
 
+def vectorToBattle (vec):
+    # converts a vector to a ship
+    attacker_ships = []
+    defender_ships = []
+    if vec[0]>0:
+        attacker_ships.append(vectorToShip(vec[ 0:16], "INT"))
+    if vec[16]>0:
+        attacker_ships.append(vectorToShip(vec[16:32], "CRU"))
+    if vec[32]>0:
+        attacker_ships.append(vectorToShip(vec[32:48], "DRE"))
+    attacker_bonus = BonusData(vec[48], vec[49])
+    if vec[50]>0:
+        defender_ships.append(vectorToShip(vec[50:66], "INT"))
+    if vec[66]>0:
+        defender_ships.append(vectorToShip(vec[66:82], "CRU"))
+    if vec[82]>0:
+        defender_ships.append(vectorToShip(vec[82:98], "DRE"))
+    if vec[98]>0:
+        defender_ships.append(vectorToShip(vec[98:114], "SBA"))
+    defender_bonus = BonusData(vec[114], vec[115])
+    return BattleData(attacker_ships, attacker_bonus, defender_ships, defender_bonus)
+
+
+
+###############################
+# RANDOM GENERATION FUNCTIONS #
+###############################
 def smallStatBonus ():
     # function that returns a small increment, to account for stat bonuses on discovery tiles and such
-    return choices(range(0,4), weights = [0.7, 0.15, 0.1, 0.05])[0]
+    return choices(range(0,4), weights = [0.9, 0.08, 0.01, 0.01])[0]
 
 def decreasingLikelyhood (max_number):
     # function that returns a random number between 1 and max_number, with exponentially decreasing likelyhood
@@ -196,22 +292,35 @@ def randomBattle (max_ships=2):
     nb_defender_ships = randint(1, min(4, max_ships-nb_attacker_ships))
 
     attacker_ships = []
-    for type in choices(["INT", "CRU", "DRE"]       , k=nb_attacker_ships):
+    for type in sample(["INT", "CRU", "DRE"]       , k=nb_attacker_ships):
         attacker_ships.append(randomShip(type))
 
     defender_ships = []
-    for type in choices(["INT", "CRU", "DRE", "SBA"], k=nb_defender_ships):
+    for type in sample(["INT", "CRU", "DRE", "SBA"], k=nb_defender_ships):
         defender_ships.append(randomShip(type))
 
     #TODO randomize bonuses
     return BattleData(attacker_ships, BonusData (False, False), defender_ships, BonusData (False, False))
 
+if __name__ == "__main__":
+    # small battery of tests
+    battle = randomBattle(max_ships=5)
+    print (battle.toString())
+    print (vectorToBattle(battle.toVector()).toString())
+    #print (battle.solveBattle())
+    #print (battle._attacker_win_chance)
+    #print (battle._calculation_time)
 
-battle = randomBattle(max_ships=5)
 
-print (battle.toVector())
-print (battle.signature())
+    #start_time = time ()
+    #for i in range (1000):
+    #    print (i, time ()-start_time)
+    #    battle = randomBattle(max_ships=4)
+    #    battle.solveBattle()
+    #    battle.appendToCSV("test.csv")
 
-
-for i in range (10):
-    print (randomShip("DRE").toVector())
+    #for i in range (10):
+    #    ship = randomShip("INT")
+    #    print (ship.toVector())
+    #    print (ship.toString())
+    #    print (vectorToShip(ship.toVector(), "INT").toString())
