@@ -151,6 +151,16 @@ class BattleData:
 
         return output
     
+    def errorCheck (self):
+        # check if the battle was solved correctly
+        if isinstance(self._attacker_win_chance, float):
+            if (self._attacker_win_chance>1.000001)or(self._attacker_win_chance<-0.000001):
+                return True
+            else:
+                return False
+        else:
+            return True
+    
     def appendToCSV (self, file):
         # the format is (int) signature, (int) toVector, (float) calculation time, (float) Battleresult
         row = [self.signature()] + self.toVector() + [self._calculation_time] + [self._attacker_win_chance]
@@ -304,9 +314,9 @@ def randomBattle (max_ships=2):
 
 if __name__ == "__main__":
     # small battery of tests
-    battle = randomBattle(max_ships=5)
-    print (battle.toString())
-    print (vectorToBattle(battle.toVector()).toString())
+    #battle = randomBattle(max_ships=5)
+    #print (battle.toString())
+    #print (vectorToBattle(battle.toVector()).toString())
     #print (battle.solveBattle())
     #print (battle._attacker_win_chance)
     #print (battle._calculation_time)
@@ -324,3 +334,7 @@ if __name__ == "__main__":
     #    print (ship.toVector())
     #    print (ship.toString())
     #    print (vectorToShip(ship.toVector(), "INT").toString())
+
+    vec = [1,3,0,3,0,0,2,0,0,0,0,0,0,0,0,0,1,8,0,5,1,0,0,0,0,0,0,0,2,0,0,0,1,1,5,3,3,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,2,1,2,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    print (len(vec))
+    print (vectorToBattle(vec).toString())
