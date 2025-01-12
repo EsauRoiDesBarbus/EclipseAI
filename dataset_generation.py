@@ -11,7 +11,7 @@ if __name__ == "__main__":
     error_dataset = "datasets/error_dataset.csv"
     datasets = [train_dataset, tests_dataset, verif_dataset, tmout_dataset, error_dataset]
 
-    timeout = 5 # seconds
+    timeout = 30 # seconds
 
     # Check if the file exists
     for dataset in datasets:
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     timeouts = 0
 
     start_time = time ()
-    for i in range (100):
+    for i in range (10000):
         # generate battle 
         battle_data = randomBattle(max_ships=5)
 
