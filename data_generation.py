@@ -1,4 +1,4 @@
-from eclipseCpp import battleBuilder, Weapons
+from eclipseCpp import BattleBuilder
 from random import randint, choices, sample
 from time import time
 import csv
@@ -130,25 +130,21 @@ class BattleData:
     
     def solveBattle (self, timeout=60):
         # use the eclipseCpp library to solve the battle
-        battle_builder = battleBuilder()
+        battle_builder = BattleBuilder()
         for ship in self._attacker_ships:
-            canons = Weapons(ship._canons[0], ship._canons[1], ship._canons[2], ship._canons[3], ship._canons[4])
-            missiles = Weapons(ship._missiles[0], ship._missiles[1], ship._missiles[2], ship._missiles[3], ship._missiles[4])
-            battle_builder.addShip("ATT", ship._number, ship._type, ship._initiative, ship._hull, ship._computer, ship._shield, canons, missiles)
+            battle_builder.addShip("ATT", ship._number, ship._type, ship._initiative, ship._hull, ship._computer, ship._shield, ship._canons, ship._missiles)
 
         for ship in self._defender_ships:
-            canons = Weapons(ship._canons[0], ship._canons[1], ship._canons[2], ship._canons[3], ship._canons[4])
-            missiles = Weapons(ship._missiles[0], ship._missiles[1], ship._missiles[2], ship._missiles[3], ship._missiles[4])
-            battle_builder.addShip("DEF", ship._number, ship._type, ship._initiative, ship._hull, ship._computer, ship._shield, canons, missiles)
+            battle_builder.addShip("DEF", ship._number, ship._type, ship._initiative, ship._hull, ship._computer, ship._shield, ship._canons, ship._missiles)
 
         #TODO add bonuses
 
         # solve battle
-        battle_builder.setTimeout(timeout)
         start_time = time ()
-        output = battle_builder.solveBattle()
+        output = battle_builder.solveBattle(timeout)
         self._calculation_time = time () - start_time
-        self._attacker_win_chance = battle_builder.getAttackerWinChance()
+        result = battle_builder.getResult ()
+        self._attacker_win_chance = result["attacker_win_chance"]
         self._timeout = battle_builder.getTimeoutStatus()
 
         return output
