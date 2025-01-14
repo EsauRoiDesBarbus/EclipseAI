@@ -21,7 +21,7 @@ y_test  =  test_data.iloc[:,   -1].values    # All rows, last column as labels
 # Build the neural network model
 model = Sequential()
 
-# Input layer (size of X_train features)
+# Input layer
 model.add(Dense(128, input_dim=116, activation='relu'))
 
 # Hidden layer
@@ -44,8 +44,18 @@ loss, accuracy = model.evaluate(X_test, y_test)
 print(f"Test Loss: {loss}")
 
 
+print ("Test 1: 1 base cruiser vs 1 base starbase")
+battle_data = BattleData ([ShipData(1, "CRU", 2, 1, 1, 0, [1,0,0,0,0], [0,0,0,0,0])], BonusData(0,0), [ShipData(1, "SBA", 4, 2, 1, 0, [1,0,0,0,0], [0,0,0,0,0])], BonusData(0,0))
+battle_data.solveBattle()
+print ("exact value:", battle_data._attacker_win_chance)
+input_vector = [battle_data.toVector()] # model expects a 2D input
 
-battle_data = BattleData ([ShipData(2, "CRU", 2, 1, 1, 0, [2,0,0,0,0], [0,0,0,0,0])], BonusData(0,0), [ShipData(1, "SBA", 4, 2, 1, 0, [1,0,0,0,0], [0,0,0,0,0]), ShipData(1, "INT", 3, 0, 0, 0, [1,0,0,0,0], [0,0,0,0,0])], BonusData(0,0))
+prediction = model.predict(input_vector)
+print("model prediction:", prediction[0][0])  # For a single output, we return the scalar value (not the array)
+
+
+print ("Test 2: 3 base cruisers vs 1 base starbase")
+battle_data = BattleData ([ShipData(3, "CRU", 2, 1, 1, 0, [1,0,0,0,0], [0,0,0,0,0])], BonusData(0,0), [ShipData(1, "SBA", 4, 2, 1, 0, [1,0,0,0,0], [0,0,0,0,0])], BonusData(0,0))
 battle_data.solveBattle()
 print ("exact value:", battle_data._attacker_win_chance)
 input_vector = [battle_data.toVector()] # model expects a 2D input
