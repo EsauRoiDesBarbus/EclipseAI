@@ -34,9 +34,11 @@ if __name__ == "__main__":
 
     start_time = time ()
     for i in range (10000):
-        # generate battle 
-        battle_data = randomBattle(max_ships=5)
 
+        print (i, time ()-start_time)
+        # generate battle 
+        battle_data = randomBattle(max_ships=2)
+        print (battle_data.toString())
 
         # check signatures for doublon
         signature = battle_data.signature()
@@ -45,31 +47,31 @@ if __name__ == "__main__":
             continue # this battle is already in one of the datasets, create another one
         else:
             signatures.append(signature)
-            print (i, time ()-start_time)
 
             # solve battle 
-            battle_data.solveBattle(timeout)
+            status = battle_data.solveBattle(timeout)
 
-            if (battle_data._timeout):
+            if (status=="TIMEOUT"):
                 # solveBattle timed out
                 timeouts+=1
                 dataset = tmout_dataset
-                battle_data.appendToCSV(dataset, with_result=False)
-            else:
+                with_result = False
+            elif (status=="OK"):
+                with_result = True
                 # solveBattle finished within time
                 # add to one of the datasets
-                if battle_data.errorCheck():
-                    dataset = error_dataset
+                key = signature%10 # 50% training, 30% testing, 20% verification
+                if   key <5:
+                    dataset = train_dataset
+                elif key <8:
+                    dataset = tests_dataset
                 else:
-                    key = signature%10 # 50% training, 30% testing, 20% verification
-                    if   key <5:
-                        dataset = train_dataset
-                    elif key <8:
-                        dataset = tests_dataset
-                    else:
-                        dataset = verif_dataset
+                    dataset = verif_dataset
+            else:
+                dataset = error_dataset
+                with_result = False
 
-                battle_data.appendToCSV(dataset)
+            addBattleToCSV(battle_data, dataset, with_result)
 
 
     print ("Doublons: ", doublons)
