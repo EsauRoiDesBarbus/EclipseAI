@@ -3,13 +3,20 @@ import os
 import csv
 from time import time
 
+TRAINING_AND_VALIDATION_DATASET = "datasets/training_and_validation_dataset.csv"
+FINAL_TEST_DATASET = "datasets/final_test_dataset.csv"
+TIMEOUT_DATASET = "datasets/timeout_dataset.csv"
+ERROR_DATASET = "datasets/error_dataset.csv"
+
 if __name__ == "__main__":
-    train_dataset = "datasets/training_dataset.csv"
-    tests_dataset = "datasets/testing_dataset.csv"
-    verif_dataset = "datasets/verification_dataset.csv"
-    tmout_dataset = "datasets/timeout_dataset.csv"
-    error_dataset = "datasets/error_dataset.csv"
-    datasets = [train_dataset, tests_dataset, verif_dataset, tmout_dataset, error_dataset]
+
+    NUMBER_OF_RANDOM_BATTLES = 100000
+
+    MAX_SHIP_TYPES = 2
+
+    TRAINING_AND_VALIDATION_PERCENTAGE = 90 # the rest are set apart for final validation
+
+    datasets = [TRAINING_AND_VALIDATION_DATASET, FINAL_TEST_DATASET, TIMEOUT_DATASET, ERROR_DATASET]
 
     timeout = 30 # seconds
 
@@ -33,11 +40,11 @@ if __name__ == "__main__":
     timeouts = 0
 
     start_time = time ()
-    for i in range (10000):
+    for i in range (NUMBER_OF_RANDOM_BATTLES):
 
         print (i, time ()-start_time)
         # generate battle 
-        battle_data = randomBattle(max_ships=2)
+        battle_data = randomBattle(max_ships=MAX_SHIP_TYPES)
         print (battle_data.toString())
 
         # check signatures for doublon
@@ -54,21 +61,19 @@ if __name__ == "__main__":
             if (status=="TIMEOUT"):
                 # solveBattle timed out
                 timeouts+=1
-                dataset = tmout_dataset
+                dataset = TIMEOUT_DATASET
                 with_result = False
             elif (status=="OK"):
                 with_result = True
                 # solveBattle finished within time
                 # add to one of the datasets
-                key = signature%10 # 50% training, 30% testing, 20% verification
-                if   key <5:
-                    dataset = train_dataset
-                elif key <8:
-                    dataset = tests_dataset
+                random_number_between_0_and_99 = signature%100
+                if   random_number_between_0_and_99 <TRAINING_AND_VALIDATION_PERCENTAGE:
+                    dataset = TRAINING_AND_VALIDATION_DATASET
                 else:
-                    dataset = verif_dataset
+                    dataset = FINAL_TEST_DATASET
             else:
-                dataset = error_dataset
+                dataset = ERROR_DATASET
                 with_result = False
 
             addBattleToCSV(battle_data, dataset, with_result)
