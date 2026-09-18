@@ -121,9 +121,12 @@ def randomShip (type):
 
 
 
-def randomBattle (max_ships=2):
-    nb_attacker_ships = randint(1, min(3, max_ships-1))
-    nb_defender_ships = randint(1, min(4, max_ships-nb_attacker_ships))
+def randomBattle (number_ship_types=2):
+    MAX_SHIP_TYPES_ATTACKER = 3
+    MAX_SHIP_TYPES_DEFENDER = 4
+    MIN_SHIP_TYPES_BY_SIDE = max(1, number_ship_types-MAX_SHIP_TYPES_DEFENDER)
+    nb_attacker_ships = randint(MIN_SHIP_TYPES_BY_SIDE, min(MAX_SHIP_TYPES_ATTACKER, number_ship_types-MIN_SHIP_TYPES_BY_SIDE))
+    nb_defender_ships = number_ship_types-nb_attacker_ships
 
     attacker_ships = []
     for type in sample(["INT", "CRU", "DRE"]       , k=nb_attacker_ships):
@@ -147,9 +150,9 @@ if __name__ == "__main__":
 
 
     start_time = time ()
-    for i in range (1000):
-        print (i, time ()-start_time)
-        battle = randomBattle(max_ships=4)
+    for random_battle in range (1000):
+        print (random_battle, time ()-start_time)
+        battle = randomBattle(number_ship_types=4)
         battle.solveBattle()
         addBattleToCSV(battle, "datasets/test.csv")
 

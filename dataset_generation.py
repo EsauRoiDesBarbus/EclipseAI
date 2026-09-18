@@ -3,22 +3,22 @@ import os
 import csv
 from time import time
 
-TRAINING_AND_VALIDATION_DATASET = "datasets/training_and_validation_dataset.csv"
-FINAL_TEST_DATASET = "datasets/final_test_dataset.csv"
-TIMEOUT_DATASET = "datasets/timeout_dataset.csv"
-ERROR_DATASET = "datasets/error_dataset.csv"
+DATASET_2 = "datasets/2_ship_types.csv"
+DATASET_3 = "datasets/3_ship_types.csv"
+DATASET_4 = "datasets/4_ship_types.csv"
+DATASET_5 = "datasets/5_ship_types.csv"
+TIMEOUT_DATASET = "datasets/timeouts.csv"
+ERROR_DATASET = "datasets/errors.csv"
 
 if __name__ == "__main__":
 
-    NUMBER_OF_RANDOM_BATTLES = 100000
+    NUMBER_OF_RANDOM_BATTLES = 1000000
 
-    MAX_SHIP_TYPES = 2
+    NUMBER_SHIP_TYPES = 3
 
-    TRAINING_AND_VALIDATION_PERCENTAGE = 90 # the rest are set apart for final validation
+    datasets = [DATASET_2, DATASET_3, DATASET_4, DATASET_5, TIMEOUT_DATASET, ERROR_DATASET]
 
-    datasets = [TRAINING_AND_VALIDATION_DATASET, FINAL_TEST_DATASET, TIMEOUT_DATASET, ERROR_DATASET]
-
-    timeout = 30 # seconds
+    timeout_s = 30
 
     # Check if the file exists
     for dataset in datasets:
@@ -36,27 +36,28 @@ if __name__ == "__main__":
 
     
     # generate data
-    doublons = 0
+    duplicates = 0
     timeouts = 0
 
     start_time = time ()
-    for i in range (NUMBER_OF_RANDOM_BATTLES):
+    for random_battle in range (NUMBER_OF_RANDOM_BATTLES):
 
-        print (i, time ()-start_time)
+        print (random_battle, time ()-start_time)
         # generate battle 
-        battle_data = randomBattle(max_ships=MAX_SHIP_TYPES)
+        battle_data = randomBattle(number_ship_types=NUMBER_SHIP_TYPES)
         print (battle_data.toString())
+        print ("Duplicates proportion : " + str(100.*duplicates/(1+random_battle)) + "%")
 
         # check signatures for doublon
         signature = battle_data.signature()
         if signature in signatures:
-            doublons+=1
+            duplicates+=1
             continue # this battle is already in one of the datasets, create another one
         else:
             signatures.append(signature)
 
             # solve battle 
-            status = battle_data.solveBattle(timeout)
+            status = battle_data.solveBattle(timeout_s)
 
             if (status=="TIMEOUT"):
                 # solveBattle timed out
@@ -67,17 +68,17 @@ if __name__ == "__main__":
                 with_result = True
                 # solveBattle finished within time
                 # add to one of the datasets
-                random_number_between_0_and_99 = signature%100
-                if   random_number_between_0_and_99 <TRAINING_AND_VALIDATION_PERCENTAGE:
-                    dataset = TRAINING_AND_VALIDATION_DATASET
-                else:
-                    dataset = FINAL_TEST_DATASET
+
+                ship_types = battle_data.numberOfShipTypes()
+
+                dataset =DATASET_2 if ship_types==2 \
+                    else DATASET_3 if ship_types==3 \
+                    else DATASET_4 if ship_types==4 \
+                    else DATASET_5
             else:
                 dataset = ERROR_DATASET
                 with_result = False
 
             addBattleToCSV(battle_data, dataset, with_result)
 
-
-    print ("Doublons: ", doublons)
     print ("timeouts: ", timeouts)
