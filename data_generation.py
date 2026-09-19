@@ -35,7 +35,6 @@ def decreasingLikelyhood (max_number):
 
 
 def randomShip (type):
-    #todo make it random
     if (type=="INT"):
         max_number = 8
         free_tiles = 4
