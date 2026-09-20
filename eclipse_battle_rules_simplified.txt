@@ -1,0 +1,28 @@
+Eclipse battles take place between two players, the attacker an the defender.
+Each player has ships, each belonging to a ship type. Each player may and is likely to have multiple ships of the same type.
+
+
+Battles are resolved through a series of repeated Rounds, until all of one player’s Ships are destroyed.
+Each Round, Ships Activate by type, from that with most Initiative to that with least Initiative, with Defender going first in case of ties, attempting to Hit opposing Ships by rolling the dice corresponding to the weapons present on their Ship types.
+
+ATTACKING When a ship type becomes active, all ships of that type simultaneously roll all of their weapon dice.
+After rolling, the active player assigns each die to a single opponent Ship (including multiple dice to the same opponent Ship) to determine if it is a hit.
+
+Yellow, orange, blue and red dice work have the following faces:
+6. Guaranteed hit
+5. Hit if the active ship has 1 more COMPUTER than the targeted opponent's ship has SHIELD, else miss
+4. Hit if the active ship has 2 more COMPUTER than the targeted opponent's ship has SHIELD, else miss
+3. Hit if the active ship has 3 more COMPUTER than the targeted opponent's ship has SHIELD, else miss
+2. Hit if the active ship has 4 more COMPUTER than the targeted opponent's ship has SHIELD, else miss
+1. Guaranteed miss
+
+A hit does damage depending on the color of the die:
+Yellow: 1 damage
+Orange: 2 damage
+Blue  : 3 damage
+Red   : 4 damage
+
+If a ship has taken, since the start of battle, strictly more damage than its ship type has HULL, it is destroyed.
+
+There are two types of weapons: canons and missiles.
+The first Round, only missiles fire. Then all subsequent rounds, only canons fire.
