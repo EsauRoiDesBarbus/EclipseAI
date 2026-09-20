@@ -8,3 +8,5 @@ eclipseCpp**
 __pycache__**
 
 **checkpoint**
+**.keras
+log**
