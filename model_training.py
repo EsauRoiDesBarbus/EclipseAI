@@ -19,6 +19,31 @@ VALIDATION_PROPORTION = 0.2
 INPUTS = 116
 OUTPUTS = 33
 
+def build_model_hardcoded ():
+    model = keras.Sequential()
+
+    model.add(keras.Input(shape=(INPUTS,)))
+    
+    # Tune number of layers
+    LAYERS = 4
+    for i in range(LAYERS):
+        model.add(layers.Dense(
+            units=128*2**i,
+            activation='relu'))
+    for i in range(LAYERS):
+        model.add(layers.Dense(
+            units=64*2**(LAYERS-i),
+            activation='relu'))
+    
+    model.add(layers.Dense(OUTPUTS,activation='relu'))  # adjust for your output
+    
+    hp_lr = 1e-4
+    
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=hp_lr),
+        loss='mse',
+        metrics=['mae'])
+    return model
 
 
 def build_model(hyper_parameters):
@@ -55,15 +80,17 @@ def fit_model_to_dataset_and_save(training_and_validation_data, output_path):
     X_train = training_and_validation_data.iloc[:,1:-OUTPUTS:].values  # All rows, all columns except the first and 33 last ones
     y_train = training_and_validation_data.iloc[:,  -OUTPUTS:].values  # All rows, last 33 columns are labels
 
-    tuner = kt.BayesianOptimization(
-        build_model,
-        objective='val_loss',
-        max_trials=TUNER_TRIALS,
-        overwrite=True)
+    # tuner = kt.BayesianOptimization(
+    #     build_model,
+    #     objective='val_loss',
+    #     max_trials=TUNER_TRIALS,
+    #     overwrite=True)
 
-    tuner.search(X_train, y_train,epochs=TUNER_EPOCHS,validation_split=VALIDATION_PROPORTION)
+    # tuner.search(X_train, y_train,epochs=TUNER_EPOCHS,validation_split=VALIDATION_PROPORTION)
     
-    model = tuner.get_best_models(num_models=1)[0]
+    # model = tuner.get_best_models(num_models=1)[0]
+
+    model = build_model_hardcoded ()
 
     # Train the model
     early_stop = EarlyStopping(
