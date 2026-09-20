@@ -51,11 +51,9 @@ def build_model(hyper_parameters):
         metrics=['mae'])
     return model
 
-def fit_model_to_dataset_and_save(training_and_validation_dataset_path, output_path):
-
-    train_data = pd.read_csv(training_and_validation_dataset_path)
-    X_train = train_data.iloc[:,1:-OUTPUTS:].values  # All rows, all columns except the first and 33 last ones
-    y_train = train_data.iloc[:,  -OUTPUTS:].values  # All rows, last 33 columns are labels
+def fit_model_to_dataset_and_save(training_and_validation_data, output_path):
+    X_train = training_and_validation_data.iloc[:,1:-OUTPUTS:].values  # All rows, all columns except the first and 33 last ones
+    y_train = training_and_validation_data.iloc[:,  -OUTPUTS:].values  # All rows, last 33 columns are labels
 
     tuner = kt.BayesianOptimization(
         build_model,
@@ -76,8 +74,7 @@ def fit_model_to_dataset_and_save(training_and_validation_dataset_path, output_p
     model.fit(X_train, y_train, epochs=MAX_EPOCHS, batch_size=32, validation_split=VALIDATION_PROPORTION, callbacks=[early_stop])  # Validation split is for evaluation during training
     model.save(output_path)
 
-def evaluate_model (test_dataset_path, model_path):
-    test_data  = pd.read_csv(test_dataset_path)
+def evaluate_model (test_data, model_path):
     X_test  =  test_data.iloc[:,1:-OUTPUTS:].values   # All rows, all columns except the last one
     y_test  =  test_data.iloc[:,  -OUTPUTS:].values   # All rows, last column as labels
 
