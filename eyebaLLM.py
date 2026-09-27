@@ -1,5 +1,5 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+import torch
 
 
 prompt = "Your goal is to predict outcomes of battles in the boardgame Eclipse. "
@@ -10,7 +10,14 @@ prompt= prompt + "\n" + rules + "\n" + instruction + "\n"
 
 model_id = "Qwen/Qwen2.5-7B-Instruct"
 tok = AutoTokenizer.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", load_in_4bit=True)
+quant_config = BitsAndBytesConfig(load_in_4bit=True)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    device_map="auto",
+    quantization_config=quant_config,
+    dtype=torch.bfloat16,
+    low_cpu_mem_usage=True,
+)
 
 inputs = tok(prompt, return_tensors="pt").to("cuda")
 out = model.generate(**inputs, max_new_tokens=1000)
