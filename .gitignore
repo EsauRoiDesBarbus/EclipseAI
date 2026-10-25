@@ -2,6 +2,7 @@
 
 **.csv
 **.pyc
+**.jsonl
 
 eclipseCpp**
 __pycache__**
