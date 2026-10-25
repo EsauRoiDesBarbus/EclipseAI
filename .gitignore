@@ -3,6 +3,8 @@
 **.csv
 **.pyc
 **.jsonl
+datasets/**
+untitled_project/**
 
 eclipseCpp**
 __pycache__**
@@ -10,3 +12,5 @@ __pycache__**
 **checkpoint**
 **.keras
 log**
+.devcontainer/devcontainer-lock.json
+.vscode/settings.json
