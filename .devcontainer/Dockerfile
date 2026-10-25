@@ -1,9 +1,12 @@
-FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 
 ARG USERNAME=vscode
 RUN useradd --create-home --shell /bin/bash $USERNAME \
     && mkdir -p /workspaces \
     && chown -R $USERNAME:$USERNAME /workspaces
+
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspaces/project
 
@@ -13,7 +16,8 @@ RUN pip install --no-cache-dir \
     accelerate \
     datasets \
     bitsandbytes \
-    sentencepiece
+    sentencepiece \
+    trl peft
 
 # If your project has its own requirements.txt, uncomment:
 # COPY requirements.txt .
