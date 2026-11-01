@@ -18,5 +18,5 @@ def accuracy_reward(completions, truth, **kw):
             out.append(0.0)
             continue
         p = min(max(float(m.group(1)), 0.0), 1.0)
-        out.append(1.0 - abs(p - t))   # in [0,1], linear
+        out.append(max(0.0, 1.0 - 4*(p - t)**2))
     return out
