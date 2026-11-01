@@ -2,12 +2,12 @@ import pandas as pd
 from datasets import Dataset
 from data_generation import *
 from dataset_generation import DATASET_2, DATASET_3, DATASET_4
+from simplifyBattleStrings import vectorToSimplifiedBattles
 
 OUTPUTS = 33
 RULES = open("eclipse_battle_rules_simplified.txt", "r").read()
 
-INSTRUCTION = "Your goal is to predict outcomes of battles in the boardgame Eclipse.\n"\
-    + RULES\
+INSTRUCTION = "Your goal is to predict outcomes of battles.\n"\
     + "Reply in exactly this format: <think>short reasoning</think><answer>probability between 0 and 1</answer>"
 
 def to_rows(path, n=None, seed=0):
@@ -20,7 +20,7 @@ def to_rows(path, n=None, seed=0):
         {
             "prompt": [
                 {"role": "system", "content": INSTRUCTION},
-                {"role": "user", "content": vectorToBattle([int(v) for v in x]).toString()},
+                {"role": "user", "content": vectorToSimplifiedBattles(x)},
             ],
             "truth": float(t),
         }
