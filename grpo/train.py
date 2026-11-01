@@ -21,7 +21,7 @@ cfg = GRPOConfig(
     fp16=True,
     logging_steps=10,
     save_steps=200,
-    max_steps=50,
+    max_steps=1000,
     reward_weights=[0.2, 1.0],
     model_init_kwargs={
         "quantization_config": BitsAndBytesConfig(
@@ -54,6 +54,8 @@ for p in trainer.model.parameters():
 
 print("all dtypes:", {p.dtype for p in trainer.model.parameters()})
 print("trainable dtypes:", {p.dtype for p in trainer.model.parameters() if p.requires_grad})
-
-trainer.train()
+try:
+    trainer.train(resume_from_checkpoint=True)
+except KeyboardInterrupt:
+    trainer.save_model("grpo_eclipse/interrupted")
 trainer.save_model("grpo_eclipse/final")
