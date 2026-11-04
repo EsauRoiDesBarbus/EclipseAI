@@ -11,7 +11,7 @@ ds = load_from_disk("datasets/grpo_train")
 
 cfg = GRPOConfig(
     output_dir="grpo_eclipse",
-    learning_rate=1e-5,
+    learning_rate=2e-4,
     num_generations=4,
     per_device_train_batch_size=4,
     gradient_accumulation_steps=1,
@@ -20,8 +20,8 @@ cfg = GRPOConfig(
     bf16=False,
     fp16=True,
     logging_steps=10,
-    save_steps=200,
-    max_steps=1000,
+    save_steps=100,
+    max_steps=100000,
     reward_weights=[0.2, 1.0],
     model_init_kwargs={
         "quantization_config": BitsAndBytesConfig(
@@ -55,7 +55,7 @@ for p in trainer.model.parameters():
 print("all dtypes:", {p.dtype for p in trainer.model.parameters()})
 print("trainable dtypes:", {p.dtype for p in trainer.model.parameters() if p.requires_grad})
 try:
-    trainer.train(resume_from_checkpoint=True)
+    trainer.train(resume_from_checkpoint=False)
 except KeyboardInterrupt:
     trainer.save_model("grpo_eclipse/interrupted")
 trainer.save_model("grpo_eclipse/final")
